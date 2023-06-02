@@ -24,7 +24,7 @@ jobs:
     # part of the jobs
     steps:
       - uses: actions/checkout@v3
-      - with:
+        with:
           repository: firedrakeproject/firedrake
       - name: System dependencies
         run: |
