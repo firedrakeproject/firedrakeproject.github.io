@@ -1,6 +1,7 @@
 name: Build website from firedrakeproject/firedrake
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 3 * * *'
 
@@ -46,7 +47,7 @@ jobs:
           firedrake-preprocess-bibtex --validate source/_static/firedrake-apps.bib
           firedrake-preprocess-bibtex --validate source/_static/references.bib
       - name: Check documentation links
-        if: ${{ github.ref == 'refs/heads/master' }}
+        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
           . /home/firedrake/firedrake/bin/activate
           cd docs
