@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           name: github-pages
-          path: /__w/firedrake/firedrake/docs/build/html
+          path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/docs/build/html
           retention-days: 1
   deploy:
     name: Deploy Github pages
