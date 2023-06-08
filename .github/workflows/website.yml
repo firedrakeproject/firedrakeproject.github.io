@@ -81,7 +81,7 @@ jobs:
       id-token: write
     environment:
       name: github-pages
-      url: http://firedrakeproject.github.io
+      url: https://firedrakeproject.github.io
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
