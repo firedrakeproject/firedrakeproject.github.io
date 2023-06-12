@@ -26,29 +26,15 @@ jobs:
       - uses: actions/checkout@v3
         with:
           repository: firedrakeproject/firedrake
-      - name: System dependencies
-        run: |
-          apt-get update --fix-missing
-          apt-get -y dist-upgrade
-          apt-get -y install inkscape texlive-full
       - name: Install
         run: |
           . /home/firedrake/firedrake/bin/activate
           python -m pip install -e .
-          python -m pip install sphinx
-          python -m pip install sphinxcontrib-bibtex
-          python -m pip install sphinxcontrib-svg2pdfconverter
-          python -m pip install sphinxcontrib-jquery
-          python -m pip install bibtexparser
-          python -m pip install numpydoc
-          python -m pip install git+https://github.com/sphinx-contrib/youtube.git
       - name: Check bibtex
         run: |
           . /home/firedrake/firedrake/bin/activate
           cd docs
-          firedrake-preprocess-bibtex --validate source/_static/bibliography.bib
-          firedrake-preprocess-bibtex --validate source/_static/firedrake-apps.bib
-          firedrake-preprocess-bibtex --validate source/_static/references.bib
+          make validate-bibtex
       - name: Check documentation links
         if: ${{ github.ref == 'refs/heads/main' }}
         run: |
