@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     # The docker container to use.
     container:
-      image: firedrakeproject/firedrake-vanilla:latest
+      image: firedrakeproject/firedrake-docdeps:latest
       options: --user root
       volumes:
         - ${{ github.workspace }}:/home/firedrake/output
