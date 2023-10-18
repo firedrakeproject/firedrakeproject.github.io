@@ -58,6 +58,7 @@ jobs:
           name: github-pages
           path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/docs/build/html
           retention-days: 1
+      - uses: gautamkrishnar/keepalive-workflow@v1
   deploy:
     name: Deploy Github pages
     needs: build_website
