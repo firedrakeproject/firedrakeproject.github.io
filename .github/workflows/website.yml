@@ -58,6 +58,9 @@ jobs:
           name: github-pages
           path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/docs/build/html
           retention-days: 1
+      - name: Fix repo permissions
+        run: |
+          git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
       - uses: gautamkrishnar/keepalive-workflow@v1
   deploy:
     name: Deploy Github pages
