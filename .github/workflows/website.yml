@@ -58,6 +58,9 @@ jobs:
           name: github-pages
           path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/docs/build/html
           retention-days: 1
+      - name: Fix repo permissions
+        run: |
+          git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
       - name: Checkout for keep alive
         uses: actions/checkout@v3
       - name: Keep alive commit
