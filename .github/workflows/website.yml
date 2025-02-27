@@ -22,10 +22,12 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: firedrakeproject/firedrake-docdeps:latest
+      options: --userns host
     steps:
-      - name: Fix permissions
-        run: |
-          sudo chmod -R 777 $GITHUB_WORKSPACE /github /__w/_temp
+      # - name: Fix permissions
+      #   run: |
+      #     sudo chmod -R 777 $GITHUB_WORKSPACE /github /__w/_temp
+
 
       - uses: actions/checkout@v4
         with:
