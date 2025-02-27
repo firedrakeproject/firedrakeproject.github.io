@@ -19,34 +19,35 @@ concurrency:
 jobs:
   build_website:
     name: Run doc build
-    runs-on: [self-hosted, Linux]
+    runs-on: ubuntu-latest
     container:
       image: firedrakeproject/firedrake-docdeps:latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          repository: firedrakeproject/firedrake
-          path: firedrake-repo
-
       - name: Install Firedrake
         run: |
+          su firedrake && cd /home/firedrake
+          git clone https://github.com/firedrakeproject/firedrake.git firedrake-repo
           : # Pass '--system-site-packages' so already installed packages can be found
           python3 -m venv --system-site-packages venv
           . venv/bin/activate
+          pip uninstall -y firedrake
           pip install --verbose './firedrake-repo[docs]'
 
       - name: Check bibtex
         run: |
+          su firedrake && cd /home/firedrake
           . venv/bin/activate
           make -C firedrake-repo/docs validate-bibtex
 
       - name: Check documentation links
         run: |
+          su firedrake && cd /home/firedrake
           . venv/bin/activate
           make -C firedrake-repo/docs linkcheck
 
       - name: Build docs
         run: |
+          su firedrake && cd /home/firedrake
           . venv/bin/activate
           cd firedrake-repo/docs
           make html
@@ -55,6 +56,7 @@ jobs:
 
       - name: Copy manual to HTML tree
         run: |
+          su firedrake && cd /home/firedrake
           cd firedrake-repo/docs
           cp build/latex/Firedrake.pdf build/html/_static/manual.pdf
 
@@ -62,7 +64,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/firedrake-repo/docs/build/html
+          path: /home/firedrake/firedrake-repo/docs/build/html
           retention-days: 1
 
       - name: Checkout for keep alive
