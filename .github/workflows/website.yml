@@ -19,21 +19,15 @@ concurrency:
 jobs:
   build_website:
     name: Run doc build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     container:
       image: firedrakeproject/firedrake-docdeps:latest
-      options: --user root --platform linux/amd64
+      options: --user root
     env:
       # Since we are running as root we need to set PYTHONPATH to be able to find the installed
       # packages
       PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
     steps:
-      - name: Fix HOME
-        # For unknown reasons GitHub actions overwrite HOME to /github/home
-        # which will break everything unless fixed
-        # (https://github.com/actions/runner/issues/863)
-        run: echo "HOME=/root" >> "$GITHUB_ENV"
-
       - uses: actions/checkout@v4
         with:
           path: firedrake-repo
