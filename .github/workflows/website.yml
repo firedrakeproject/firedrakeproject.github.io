@@ -1,84 +1,89 @@
-name: Build website from firedrakeproject/firedrake
+name: Build and push website
 
 on:
   push:
     branches:
       - main
+  pull_request:
   workflow_dispatch:
   schedule:
     - cron: '0 3 * * *'
 
+concurrency:
+  # Cancels jobs running if new commits are pushed
+  group: >
+    ${{ github.workflow }}-
+    ${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build_website:
     name: Run doc build
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    # The docker container to use.
+    runs-on: [self-hosted, Linux]
     container:
       image: firedrakeproject/firedrake-docdeps:latest
-      options: --user root
-      volumes:
-        - ${{ github.workspace }}:/home/firedrake/output
-    # Steps represent a sequence of tasks that will be executed as
-    # part of the jobs
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           repository: firedrakeproject/firedrake
-      - name: Install
+          path: firedrake-repo
+
+      - name: Install Firedrake
         run: |
-          . /home/firedrake/firedrake/bin/activate
-          python -m pip install -e .
+          : # Pass '--system-site-packages' so already installed packages can be found
+          python3 -m venv --system-site-packages venv
+          . venv/bin/activate
+          pip install --verbose './firedrake-repo[docs]'
+
       - name: Check bibtex
         run: |
-          . /home/firedrake/firedrake/bin/activate
-          cd docs
-          make validate-bibtex
+          . venv/bin/activate
+          make -C firedrake-repo/docs validate-bibtex
+
       - name: Check documentation links
-        if: ${{ github.ref == 'refs/heads/main' }}
         run: |
-          . /home/firedrake/firedrake/bin/activate
-          cd docs
-          make linkcheck
+          . venv/bin/activate
+          make -C firedrake-repo/docs linkcheck
+
       - name: Build docs
         run: |
-          . /home/firedrake/firedrake/bin/activate
-          cd docs
+          . venv/bin/activate
+          cd firedrake-repo/docs
           make html
           make latex
           make latexpdf
-      - name:  Copy manual to HTML tree
+
+      - name: Copy manual to HTML tree
         run: |
-          cd docs
+          cd firedrake-repo/docs
           cp build/latex/Firedrake.pdf build/html/_static/manual.pdf
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/docs/build/html
+          path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/firedrake-repo/docs/build/html
           retention-days: 1
-      - name: Fix repo permissions
-        run: |
-          git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
+
       - name: Checkout for keep alive
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
       - name: Keep alive commit
         uses: gautamkrishnar/keepalive-workflow@v1
         with:
           time_elapsed: 30
+
   deploy:
     name: Deploy Github pages
     needs: build_website
-    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     permissions:
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: https://firedrakeproject.github.io
-    runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
-        id: deployment
         uses: actions/deploy-pages@v4
