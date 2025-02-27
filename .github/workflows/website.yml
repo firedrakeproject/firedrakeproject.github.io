@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: firedrakeproject/firedrake-docdeps:latest
-      options: --user root
+      options: --user root --platform linux/amd64
     env:
       # Since we are running as root we need to set PYTHONPATH to be able to find the installed
       # packages
