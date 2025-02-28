@@ -73,10 +73,13 @@ jobs:
           path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/firedrake-repo/docs/build/html
           retention-days: 1
 
-      - name: Checkout for keep alive
+      - name: Fix repo permissions (needed for keepalive)
+        run: git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
+
+      - name: Checkout for keepalive
         uses: actions/checkout@v4
 
-      - name: Keep alive commit
+      - name: Keepalive commit
         uses: gautamkrishnar/keepalive-workflow@v1
         with:
           time_elapsed: 30
