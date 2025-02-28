@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build_website:
     name: Run doc build
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     container:
       # UNDO ME
       # image: firedrakeproject/firedrake-docdeps:latest
@@ -85,7 +85,8 @@ jobs:
     name: Deploy Github pages
     needs: build_website
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # UNDO ME: force update on PR pass!
+    # if: github.ref == 'refs/heads/main'
     permissions:
       pages: write
       id-token: write
