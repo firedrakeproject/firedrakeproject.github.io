@@ -35,10 +35,10 @@ jobs:
 
       - name: Install Firedrake
         run: |
+          python3 -m pip uninstall --break-system-packages -y firedrake
           : # Pass '--system-site-packages' so already installed packages can be found
           python3 -m venv --system-site-packages venv
           . venv/bin/activate
-          pip uninstall -y firedrake
           pip install --verbose './firedrake-repo[docs]'
 
       - name: Check bibtex
