@@ -102,9 +102,6 @@ jobs:
     permissions:
       actions: write
     steps:
-      # needed?
-      # - name: Fix repo permissions (needed for keepalive)
-      #   run: git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
       - uses: actions/checkout@v4
       - uses: gautamkrishnar/keepalive-workflow@v2
         with:
