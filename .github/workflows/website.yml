@@ -22,11 +22,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: firedrakeproject/firedrake-docdeps:latest
-      options: --user root
-    env:
-      # Since we are running as root we need to set PYTHONPATH to be able to find the installed
-      # packages
-      PYTHONPATH: /home/firedrake/firedrake:/home/firedrake/.local/lib/python3.12/site-packages
+    outputs:
+      conclusion: ${{ steps.report.outputs.conclusion }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -34,6 +31,7 @@ jobs:
           repository: firedrakeproject/firedrake
 
       - name: Install Firedrake
+        id: install
         run: |
           python3 -m pip uninstall --break-system-packages -y firedrake
           : # Pass '--system-site-packages' so already installed packages can be found
@@ -52,6 +50,8 @@ jobs:
           make -C firedrake-repo/docs linkcheck
 
       - name: Build docs
+        id: build
+        if: success() || steps.install.conclusion == 'success'
         run: |
           . venv/bin/activate
           cd firedrake-repo/docs
@@ -60,33 +60,32 @@ jobs:
           make latexpdf
 
       - name: Copy manual to HTML tree
+        id: copy
+        if: success() || steps.build.conclusion == 'success'
         run: |
           cd firedrake-repo/docs
           cp build/latex/Firedrake.pdf build/html/_static/manual.pdf
 
       - name: Upload artifact
+        id: upload
+        if: success() || steps.copy.conclusion == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
           path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/firedrake-repo/docs/build/html
           retention-days: 1
-
-      - name: Fix repo permissions (needed for keepalive)
-        run: git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
-
-      - name: Checkout for keepalive
-        uses: actions/checkout@v4
-
-      - name: Keepalive commit
-        uses: gautamkrishnar/keepalive-workflow@v1
-        with:
-          time_elapsed: 30
+      
+      - name: Report status
+        id: report
+        if: success() || steps.upload.conclusion == 'success'
+        run: echo "conclusion=success" >> "$GITHUB_OUTPUT"
 
   deploy:
     name: Deploy Github pages
     needs: build_website
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    # Always run this workflow on main, even if linkcheck fails
+    if: always() && github.ref == 'refs/heads/main' && needs.build_website.outputs.conclusion == 'success'
     permissions:
       pages: write
       id-token: write
@@ -96,3 +95,17 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
+
+  keepalive:
+    name: Keepalive
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      # needed?
+      # - name: Fix repo permissions (needed for keepalive)
+      #   run: git config --global --add safe.directory /__w/firedrakeproject.github.io/firedrakeproject.github.io
+      - uses: actions/checkout@v4
+      - uses: gautamkrishnar/keepalive-workflow@v2
+        with:
+          time_elapsed: 30
