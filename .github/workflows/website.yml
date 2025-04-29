@@ -27,6 +27,7 @@ jobs:
         with:
           path: firedrake-repo
           repository: firedrakeproject/firedrake
+          ref: release
 
       - name: Install system dependencies
         run: |
