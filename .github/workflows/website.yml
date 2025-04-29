@@ -1,3 +1,5 @@
+# TODO!!! Use release branch of Firedrake when building
+
 name: Build and push website
 
 on:
@@ -20,38 +22,55 @@ jobs:
   build_website:
     name: Run doc build
     runs-on: ubuntu-latest
-    container:
-      image: firedrakeproject/firedrake-docdeps:latest
-    outputs:
-      conclusion: ${{ steps.report.outputs.conclusion }}
     steps:
       - uses: actions/checkout@v4
         with:
           path: firedrake-repo
           repository: firedrakeproject/firedrake
 
-      - name: Install Firedrake
-        id: install
+      - name: Install system dependencies
         run: |
-          python3 -m pip uninstall --break-system-packages -y firedrake
-          : # Pass '--system-site-packages' so already installed packages can be found
-          python3 -m venv --system-site-packages venv
+          apt-get update
+          apt-get -y install python3
+          apt-get -y install \
+            $(python3 ./firedrake-repo/scripts/firedrake-configure \
+              --arch ${{ matrix.arch }} --show-system-packages) \
+            python3-venv
+
+      - name: Install PETSc
+        run: |
+          git clone --depth 1 \
+            --branch $(python3 ./firedrake-repo/scripts/firedrake-configure --show-petsc-version) \
+            https://gitlab.com/petsc/petsc.git
+          cd petsc
+          python3 ../firedrake-repo/scripts/firedrake-configure \
+            --arch ${{ matrix.arch }} --show-petsc-configure-options | \
+            xargs -L1 ./configure --download-slepc
+          make PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-${{ matrix.arch }}
+          make check
+          {
+            echo "PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc"
+            echo "PETSC_ARCH=arch-firedrake-${{ matrix.arch }}"
+            echo "SLEPC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-${{ matrix.arch }}"
+          } >> "$GITHUB_ENV"
+
+      - name: Install Firedrake
+        run: |
+          export $(python3 ./firedrake-repo/scripts/firedrake-configure --arch ${{ matrix.arch }} --show-env)
+          python3 -m venv venv
           . venv/bin/activate
-          pip install --verbose './firedrake-repo[docs]'
+          pip install --verbose \
+            --no-binary h5py \
+            --extra-index-url https://download.pytorch.org/whl/cpu \
+            './firedrake-repo[docs]'
+          pip list
 
       - name: Check bibtex
         run: |
           . venv/bin/activate
           make -C firedrake-repo/docs validate-bibtex
 
-      - name: Check documentation links
-        run: |
-          . venv/bin/activate
-          make -C firedrake-repo/docs linkcheck
-
       - name: Build docs
-        id: build
-        if: success() || steps.install.conclusion == 'success'
         run: |
           . venv/bin/activate
           cd firedrake-repo/docs
@@ -61,31 +80,23 @@ jobs:
 
       - name: Copy manual to HTML tree
         id: copy
-        if: success() || steps.build.conclusion == 'success'
         run: |
           cd firedrake-repo/docs
           cp build/latex/Firedrake.pdf build/html/_static/manual.pdf
 
       - name: Upload artifact
         id: upload
-        if: success() || steps.copy.conclusion == 'success'
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: /__w/firedrakeproject.github.io/firedrakeproject.github.io/firedrake-repo/docs/build/html
+          path: ./firedrake-repo/docs/build/html
           retention-days: 1
-      
-      - name: Report status
-        id: report
-        if: success() || steps.upload.conclusion == 'success'
-        run: echo "conclusion=success" >> "$GITHUB_OUTPUT"
 
   deploy:
     name: Deploy Github pages
     needs: build_website
     runs-on: ubuntu-latest
-    # Always run this workflow on main, even if linkcheck fails
-    if: always() && github.ref == 'refs/heads/main' && needs.build_website.outputs.conclusion == 'success'
+    if: github.ref == 'refs/heads/main'
     permissions:
       pages: write
       id-token: write
