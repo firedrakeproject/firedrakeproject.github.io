@@ -34,7 +34,7 @@ jobs:
           sudo apt-get -y install python3
           sudo apt-get -y install \
             $(python3 ./firedrake-repo/scripts/firedrake-configure \
-              --arch ${{ matrix.arch }} --show-system-packages) \
+              --arch default --show-system-packages) \
             python3-venv
 
       - name: Install PETSc
@@ -44,19 +44,19 @@ jobs:
             https://gitlab.com/petsc/petsc.git
           cd petsc
           python3 ../firedrake-repo/scripts/firedrake-configure \
-            --arch ${{ matrix.arch }} --show-petsc-configure-options | \
+            --arch default --show-petsc-configure-options | \
             xargs -L1 ./configure --download-slepc
-          make PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-${{ matrix.arch }}
+          make PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-default
           make check
           {
             echo "PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc"
-            echo "PETSC_ARCH=arch-firedrake-${{ matrix.arch }}"
-            echo "SLEPC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-${{ matrix.arch }}"
+            echo "PETSC_ARCH=arch-firedrake-default"
+            echo "SLEPC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-default"
           } >> "$GITHUB_ENV"
 
       - name: Install Firedrake
         run: |
-          export $(python3 ./firedrake-repo/scripts/firedrake-configure --arch ${{ matrix.arch }} --show-env)
+          export $(python3 ./firedrake-repo/scripts/firedrake-configure --arch default --show-env)
           python3 -m venv venv
           . venv/bin/activate
           pip install --verbose \
@@ -109,6 +109,7 @@ jobs:
 
   keepalive:
     name: Keepalive
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       actions: write
