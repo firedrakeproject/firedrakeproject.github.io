@@ -35,7 +35,7 @@ jobs:
           sudo apt-get -y install \
             $(python3 ./firedrake-repo/scripts/firedrake-configure \
               --arch default --show-system-packages) \
-            python3-venv
+            inkscape texlive-full python3-venv
 
       - name: Install PETSc
         run: |
