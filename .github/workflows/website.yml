@@ -46,12 +46,12 @@ jobs:
           python3 ../firedrake-repo/scripts/firedrake-configure \
             --arch default --show-petsc-configure-options | \
             xargs -L1 ./configure --download-slepc
-          make PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-default
+          make PETSC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-default
           make check
           {
-            echo "PETSC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc"
+            echo "PETSC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc"
             echo "PETSC_ARCH=arch-firedrake-default"
-            echo "SLEPC_DIR=/__w/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-default"
+            echo "SLEPC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-default"
           } >> "$GITHUB_ENV"
 
       - name: Install Firedrake
