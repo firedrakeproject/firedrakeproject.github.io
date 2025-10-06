@@ -20,78 +20,31 @@ jobs:
   build_website:
     name: Run doc build
     runs-on: ubuntu-latest
+    container:
+      image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
-      - uses: actions/checkout@v4
-        with:
-          path: firedrake-repo
-          repository: firedrakeproject/firedrake
-          ref: release
-
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get -y install python3
-          sudo apt-get -y install \
-            $(python3 ./firedrake-repo/scripts/firedrake-configure \
-              --arch default --show-system-packages) \
-            inkscape texlive-full python3-venv
+          apt-get update
+          apt-get -y install inkscape texlive-full
 
-      - name: Install PETSc
+      - name: Build documentation
+        working-directory: /opt/firedrake/docs
         run: |
-          git clone --depth 1 \
-            --branch $(python3 ./firedrake-repo/scripts/firedrake-configure --show-petsc-version) \
-            https://gitlab.com/petsc/petsc.git
-          cd petsc
-          python3 ../firedrake-repo/scripts/firedrake-configure \
-            --arch default --show-petsc-configure-options | \
-            xargs -L1 ./configure --download-slepc
-          make PETSC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc PETSC_ARCH=arch-firedrake-default
-          make check
-          {
-            echo "PETSC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc"
-            echo "PETSC_ARCH=arch-firedrake-default"
-            echo "SLEPC_DIR=/home/runner/work/firedrakeproject.github.io/firedrakeproject.github.io/petsc/arch-firedrake-default"
-          } >> "$GITHUB_ENV"
-
-      - name: Install Firedrake
-        run: |
-          export $(python3 ./firedrake-repo/scripts/firedrake-configure --arch default --show-env)
-          python3 -m venv venv
-          . venv/bin/activate
-          : # Hotfix for petsc4py build, see https://gitlab.com/petsc/petsc/-/issues/1759
-          echo 'Cython<3.1' > constraints.txt
-          export PIP_CONSTRAINT=constraints.txt
-          pip install --verbose \
-            --no-binary h5py \
-            --extra-index-url https://download.pytorch.org/whl/cpu \
-            './firedrake-repo[docs]'
-          pip list
-
-      - name: Check bibtex
-        run: |
-          . venv/bin/activate
-          make -C firedrake-repo/docs validate-bibtex
-
-      - name: Build docs
-        run: |
-          . venv/bin/activate
-          cd firedrake-repo/docs
           make SPHINXOPTS="-t release" html
           make latex
           make latexpdf
 
       - name: Copy manual to HTML tree
-        id: copy
+        working-directory: /opt/firedrake/docs
         run: |
-          cd firedrake-repo/docs
           cp build/latex/Firedrake.pdf build/html/_static/manual.pdf
 
       - name: Upload artifact
-        id: upload
         uses: actions/upload-pages-artifact@v3
         with:
           name: github-pages
-          path: ./firedrake-repo/docs/build/html
+          path: /opt/firedrake/docs/build/html
           retention-days: 1
 
   deploy:
