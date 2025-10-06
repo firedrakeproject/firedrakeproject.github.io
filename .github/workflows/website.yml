@@ -23,6 +23,10 @@ jobs:
     container:
       image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
+      - name: Install documentation dependencies
+        run: |
+          python3 -m pip install --no-build-isolation '/opt/firedrake[docs]'
+
       - name: Install system dependencies
         run: |
           apt-get update
