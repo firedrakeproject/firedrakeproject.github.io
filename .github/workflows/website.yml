@@ -23,6 +23,12 @@ jobs:
     container:
       image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
+      # Pull the latest changes from the release branch, as we may have just changed to it
+      - name: Update Firedrake
+        run: |
+          cd /opt/firedrake
+          git pull
+          
       - name: Install documentation dependencies
         run: |
           python3 -m pip install --no-build-isolation '/opt/firedrake[docs]'
