@@ -31,6 +31,7 @@ jobs:
           
       - name: Install documentation dependencies
         run: |
+          python3 -m pip install -r /opt/firedrake/requirements-build.txt
           python3 -m pip install --no-build-isolation '/opt/firedrake[docs]'
 
       - name: Install system dependencies
