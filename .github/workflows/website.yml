@@ -23,10 +23,6 @@ jobs:
     container:
       image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
-      - name: install sys
-        run: |
-          apt-get update
-          apt-get install -y pandoc
       # Pull the latest changes from the release branch, as we may have just changed to it
       - name: Update Firedrake
         run: |
@@ -41,7 +37,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get -y install inkscape texlive-full
+          apt-get -y install inkscape texlive-full pandoc
 
       - name: Build documentation
         working-directory: /opt/firedrake/docs
