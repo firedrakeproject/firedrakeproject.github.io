@@ -23,6 +23,10 @@ jobs:
     container:
       image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
+      - install sys
+        run: |
+          apt-get update
+          apt-get install -y pandoc
       # Pull the latest changes from the release branch, as we may have just changed to it
       - name: Update Firedrake
         run: |
