@@ -37,7 +37,7 @@ jobs:
       - name: Install system dependencies
         run: |
           apt-get update
-          apt-get -y install inkscape texlive-full
+          apt-get -y install inkscape texlive-full pandoc
 
       - name: Build documentation
         working-directory: /opt/firedrake/docs
