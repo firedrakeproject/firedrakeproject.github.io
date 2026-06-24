@@ -23,7 +23,7 @@ jobs:
     container:
       image: firedrakeproject/firedrake-vanilla-default:dev-release
     steps:
-      - install sys
+      - name: install sys
         run: |
           apt-get update
           apt-get install -y pandoc
